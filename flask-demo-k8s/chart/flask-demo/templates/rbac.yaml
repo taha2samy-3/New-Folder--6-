@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flask-demo-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: flask-demo-event-creator
+rules:
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: flask-demo-event-creator-binding
+subjects:
+- kind: ServiceAccount
+  name: flask-demo-sa
+roleRef:
+  kind: Role
+  name: flask-demo-event-creator
+  apiGroup: rbac.authorization.k8s.io

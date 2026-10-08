@@ -1,0 +1,11 @@
+db:
+  password: "password123"
+  rootPassword: "rootpassword123"
+
+app:
+  image: "taha/flask-demo"
+  tag: "v1" # Change this to "v2" when you want Argo Rollouts to start the Canary update!
+  port: 5000
+
+ingress:
+  host: "demo.local"

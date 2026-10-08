@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: flask-demo-rollout
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: flask-demo
+  template:
+    metadata:
+      labels:
+        app: flask-demo
+    spec:
+      serviceAccountName: flask-demo-sa
+      containers:
+      - name: flask
+        image: "{{ .Values.app.image }}:{{ .Values.app.tag }}"
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: APP_VERSION
+          value: "{{ .Values.app.tag }}"
+        - name: DB_PASSWORD
+          value: {{ .Values.db.password }}
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - containerPort: {{ .Values.app.port }}
+  strategy:
+    canary:
+      canaryService: flask-demo-canary-svc
+      stableService: flask-demo-stable-svc
+      trafficRouting:
+        nginx:
+          stableIngress: flask-demo-ingress
+          additionalIngressAnnotations:
+            nginx.ingress.kubernetes.io/canary-by-cookie: "dev_mode"
+      steps:
+      - pause: {} # Pause indefinitely for testing via Cookie
